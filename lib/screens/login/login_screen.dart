@@ -3,6 +3,7 @@ import 'package:email_validator/email_validator.dart';
 import 'package:saryin/utils/alert.dart';
 import 'package:saryin/utils/graph_ds.dart';
 import 'package:saryin/models/user.dart';
+import 'package:saryin/data/database_helper.dart';
 
 class LoginScreen extends StatefulWidget {
   State<StatefulWidget> createState() => new _LoginPageState();
@@ -13,10 +14,24 @@ class _LoginPageState extends State<LoginScreen> {
   final TextEditingController _passwordFilter = new TextEditingController();
   String _email = "";
   String _password = "";
+  BuildContext _ctx;
   GraphDatasource ds = new GraphDatasource();
   _LoginPageState() {
     _emailFilter.addListener(_emailListen);
     _passwordFilter.addListener(_passwordListen);
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    checkLogin();
+  }
+
+  void checkLogin() async {
+    var db = new DatabaseHelper();
+    var isLoggedIn = await db.isLoggedIn();
+    if (isLoggedIn) Navigator.of(_ctx).pushReplacementNamed('/home');
   }
 
   void _emailListen() {
@@ -36,6 +51,7 @@ class _LoginPageState extends State<LoginScreen> {
   }
 
   Widget build(BuildContext context) {
+    _ctx = context;
     return new Scaffold(
         appBar: _buildBar(context),
         body: new Container(
@@ -93,7 +109,10 @@ class _LoginPageState extends State<LoginScreen> {
       return showError(context, "Something went wrong", "Invalid email format");
     }
     ds.login(_email, _password).then((User user) {
-      showError(context, "Success Login", user.name);
+      var db = new DatabaseHelper();
+      db.deleteUsers();
+      db.saveUser(user);
+      Navigator.of(_ctx).pushReplacementNamed('/home');
     }).catchError((e) {
       showError(context, "Cannot login", e.toString());
     });

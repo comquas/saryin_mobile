@@ -9,7 +9,7 @@ class User {
   String get id => _id;
   String get token => _token;
 
-User.map(dynamic obj) {
+  User.map(dynamic obj) {
     this._name = obj["name"];
     this._email = obj["email"];
     this._id = obj["id"];
